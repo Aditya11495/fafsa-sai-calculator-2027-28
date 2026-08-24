@@ -5,7 +5,7 @@ from engine.calculator import calculate_sai
 from pell.pell_engine import calculate_pell
 from tables.pell_parameters import get_poverty_guideline, TEST_MAXIMUM_PELL_2026_27, TEST_MINIMUM_PELL_2026_27
 
-st.set_page_config(page_title="FAFSA 2027–28 SAI Calculator", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="FAFSA 2027–28 SAI & Pell Calculator", page_icon="🎓", layout="wide")
 
 st.title("FAFSA 2027–28 → SAI Calculator")
 st.caption("Development build — Formula A/B/C calculation engine")
