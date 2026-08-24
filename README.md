@@ -13,7 +13,7 @@ The system collects FAFSA-style financial and household information, determines 
 
 The application is designed as an end-to-end financial-aid decision engine:
 
-```text
+
 User Information
        ↓
 FAFSA-style Questionnaire
