@@ -74,7 +74,7 @@ c1, c2 = st.columns(2)
 
 with c1:
 
-    st.subheader("Income")
+    st.subheader("Student Income")
 
     agi = st.number_input(
         "AGI ($)",
@@ -113,7 +113,7 @@ with c1:
 
 with c2:
     
-    st.subheader("Assets")
+    st.subheader("Student Assets")
 
     child_support = st.number_input(
         "Child support received ($)",
