@@ -12,7 +12,6 @@ from tables.pell_parameters import (
 )
 
 
-
 st.set_page_config(
     page_title="FAFSA 2027–28 SAI & Pell Calculating Engine",
     page_icon="🎓",
@@ -69,7 +68,7 @@ c1, c2 = st.columns(2)
 
 
 # ============================================================
-# INCOME
+# STUDENT INCOME
 # ============================================================
 
 with c1:
@@ -84,11 +83,32 @@ with c1:
     )
 
     ira_keogh = st.number_input(
-    "Deductible IRA/KEOGH ($)",
-    min_value=0.0,
-    value=0.0,
-    step=100.0,
-)
+        "Deductible IRA/KEOGH ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
+    tax_exempt_interest = st.number_input(
+        "Tax-exempt interest ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
+    untaxed_ira = st.number_input(
+        "Untaxed IRA distributions ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
+    untaxed_pensions = st.number_input(
+        "Untaxed pensions ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
 
     foreign_income = st.number_input(
         "Foreign income exclusion ($)",
@@ -117,7 +137,30 @@ with c1:
 # ============================================================
 
 with c2:
-    
+
+    st.subheader("Student Offsets")
+
+    taxable_grants = st.number_input(
+        "Taxable grants / scholarships ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
+    education_credits = st.number_input(
+        "Education credits ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
+    work_study = st.number_input(
+        "Federal Work-Study ($)",
+        min_value=0.0,
+        value=0.0,
+        step=100.0,
+    )
+
     st.subheader("Student Assets")
 
     child_support = st.number_input(
@@ -147,8 +190,21 @@ with c2:
         value=0.0,
         step=100.0,
     )
-    
-    
+
+
+# ============================================================
+# FAMILY INFORMATION
+# ============================================================
+
+st.header("Family Information")
+
+family_size = st.number_input(
+    "Family size",
+    min_value=1,
+    value=2,
+    step=1,
+)
+
 
 # ============================================================
 # PARENT INFORMATION
@@ -164,13 +220,7 @@ if formula == "A":
         value=0.0,
         step=100.0,
     )
-    
-    family_size = st.number_input(
-    "Family size",
-    min_value=1,
-    value=2,
-    step=1,
-)
+
     parent_tax_paid = st.number_input(
         "Parent federal income tax paid ($)",
         min_value=0.0,
@@ -416,27 +466,18 @@ if st.button(
         dependency_status=dependent.lower(),
         single_parent=single_parent,
         is_parent=is_parent,
-
         agi=(
             parent_agi
             if formula == "A"
             else agi
         ),
-
         foreign_income_exclusion=foreign_income,
-
         poverty_guideline=poverty_guideline,
-
         tax_filing_required=tax_filing_required,
-
         maximum_pell_award=max_pell_award,
         minimum_pell_award=min_pell_award,
-
         cost_of_attendance=cost_of_attendance,
-
-        enrollment_intensity=(
-            enrollment_intensity_pct / 100
-        ),
+        enrollment_intensity=enrollment_intensity_pct / 100,
     )
 
 
@@ -507,8 +548,10 @@ if st.button(
         )
 
 
-    with st.expander(
-        "Pell calculation details"
-    ):
+    # ========================================================
+    # PELL DETAILS
+    # ========================================================
+
+    with st.expander("Pell calculation details"):
 
         st.json(pell_result)
