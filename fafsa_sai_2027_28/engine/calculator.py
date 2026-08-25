@@ -20,7 +20,7 @@ def common_income(x: FAFSAInput):
 def formula_a(x: FAFSAInput):
     p_income, _, _ = common_income(
         FAFSAInput(
-            formula="A", married=x.married, family_size=x.family_size,
+            formula="A", married=x.married, family_size=x.family_size, 
             agi=x.parent_agi, ira_keogh=0, tax_exempt_interest=0,
             untaxed_ira=0, untaxed_pensions=0,
             foreign_income_exclusion=0, tax_paid=x.parent_tax_paid,
