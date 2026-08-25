@@ -1,6 +1,9 @@
 from .maximum_pell import check_maximum_pell
 from .minimum_pell import check_minimum_pell
-from .calculated_pell import calculate_calculated_pell, round_pell_award
+from .calculated_pell import (
+    calculate_calculated_pell,
+    round_pell_award,
+)
 
 
 def calculate_pell(
@@ -18,14 +21,55 @@ def calculate_pell(
     cost_of_attendance: float,
     enrollment_intensity: float,
 ) -> dict:
-    """Run Maximum Pell -> Calculated Pell -> Minimum Pell logic."""
+    """
+    2027-28 Pell workflow:
 
-    if maximum_pell_award <= 0 or minimum_pell_award <= 0:
-        raise ValueError("Pell award amounts must be greater than zero.")
+    Step 1:
+        Determine Maximum Pell eligibility.
+
+    Step 2:
+        Calculate Pell from SAI.
+
+    Step 3:
+        Determine Minimum Pell eligibility.
+
+    Important:
+        Maximum Pell Indicator 1 (non-filer)
+        -> SAI = -1500
+        -> no further calculation.
+
+        Maximum Pell Indicator 2/3
+        -> continue to SAI calculation.
+    """
+
+    # --------------------------------------------------------
+    # Input validation
+    # --------------------------------------------------------
+
+    if maximum_pell_award <= 0:
+        raise ValueError(
+            "Maximum Pell award must be greater than zero."
+        )
+
+    if minimum_pell_award <= 0:
+        raise ValueError(
+            "Minimum Pell award must be greater than zero."
+        )
+
     if cost_of_attendance < 0:
-        raise ValueError("Cost of attendance cannot be negative.")
+        raise ValueError(
+            "Cost of attendance cannot be negative."
+        )
+
     if not 0 < enrollment_intensity <= 1:
-        raise ValueError("Enrollment intensity must be between 0 and 1.")
+        raise ValueError(
+            "Enrollment intensity must be between 0 and 1."
+        )
+
+    # --------------------------------------------------------
+    # STEP 1
+    # Maximum Pell test
+    # --------------------------------------------------------
 
     max_result = check_maximum_pell(
         dependency_status=dependency_status,
@@ -36,49 +80,149 @@ def calculate_pell(
         tax_filing_required=tax_filing_required,
     )
 
-    # Maximum Pell eligibility receives the full annual maximum,
-    # subject to COA/enrollment intensity for this calculator.
-    if max_result["eligible"]:
+    max_indicator = max_result["indicator"]
+
+    # --------------------------------------------------------
+    # Maximum Pell Indicator 1
+    #
+    # Non-filer:
+    # SAI = -1500
+    # No further calculation.
+    # --------------------------------------------------------
+
+    if max_result["eligible"] and max_indicator == 1:
+
         annual_award = maximum_pell_award
-        scheduled = min(annual_award * enrollment_intensity, cost_of_attendance)
+
+        scheduled = min(
+            annual_award * enrollment_intensity,
+            cost_of_attendance
+        )
+
         return {
             "pell_eligible": True,
             "pell_type": "Maximum Pell",
-            "pell_indicator": max_result["indicator"],
-            "annual_award_before_enrollment": annual_award,
-            "scheduled_award": round_pell_award(scheduled),
-            "maximum_pell": max_result,
-            "calculated_pell": None,
-            "minimum_pell": None,
+            "pell_indicator": 1,
+
+            "annual_award_before_enrollment":
+                annual_award,
+
+            "scheduled_award":
+                round_pell_award(scheduled),
+
+            "maximum_pell":
+                max_result,
+
+            "calculated_pell":
+                None,
+
+            "minimum_pell":
+                None,
         }
+
+    # --------------------------------------------------------
+    # STEP 2
+    #
+    # All other applicants, including Maximum Pell
+    # Indicators 2 and 3, go through SAI calculation.
+    # --------------------------------------------------------
 
     calculated = calculate_calculated_pell(
         sai=sai,
         maximum_pell_award=maximum_pell_award
     )
 
-    calculated_rounded = round_pell_award(calculated["raw_amount"])
+    calculated_rounded = round_pell_award(
+        calculated["raw_amount"]
+    )
 
-    # Calculated Pell is available when Max Pell is not awarded and
-    # the calculated amount is at least the applicable Minimum Pell.
-    if calculated_rounded >= minimum_pell_award:
+    # --------------------------------------------------------
+    # If SAI <= 0:
+    # Maximum Pell
+    # --------------------------------------------------------
+
+    if sai <= 0:
+
+        annual_award = maximum_pell_award
+
+        scheduled = min(
+            annual_award * enrollment_intensity,
+            cost_of_attendance
+        )
+
+        return {
+            "pell_eligible": True,
+            "pell_type": "Maximum Pell",
+            "pell_indicator": max_indicator,
+
+            "annual_award_before_enrollment":
+                annual_award,
+
+            "scheduled_award":
+                round_pell_award(scheduled),
+
+            "maximum_pell":
+                max_result,
+
+            "calculated_pell": {
+                **calculated,
+                "rounded_amount":
+                    calculated_rounded,
+            },
+
+            "minimum_pell":
+                None,
+        }
+
+    # --------------------------------------------------------
+    # Calculated Pell
+    #
+    # If SAI <= Maximum Pell - Minimum Pell,
+    # calculated Pell is at least the Minimum Pell amount.
+    # --------------------------------------------------------
+
+    calculated_threshold = (
+        maximum_pell_award
+        - minimum_pell_award
+    )
+
+    if sai <= calculated_threshold:
+
         scheduled = min(
             calculated_rounded * enrollment_intensity,
             cost_of_attendance
         )
+
         return {
             "pell_eligible": True,
             "pell_type": "Calculated Pell",
-            "pell_indicator": None,
-            "annual_award_before_enrollment": calculated_rounded,
-            "scheduled_award": round_pell_award(scheduled),
-            "maximum_pell": max_result,
+            "pell_indicator": max_indicator
+                if max_result["eligible"]
+                else None,
+
+            "annual_award_before_enrollment":
+                calculated_rounded,
+
+            "scheduled_award":
+                round_pell_award(scheduled),
+
+            "maximum_pell":
+                max_result,
+
             "calculated_pell": {
                 **calculated,
-                "rounded_amount": calculated_rounded,
+                "rounded_amount":
+                    calculated_rounded,
             },
-            "minimum_pell": None,
+
+            "minimum_pell":
+                None,
         }
+
+    # --------------------------------------------------------
+    # STEP 3
+    # Minimum Pell
+    # --------------------------------------------------------
 
     minimum = check_minimum_pell(
         dependency_status=dependency_status,
@@ -91,35 +235,66 @@ def calculate_pell(
         maximum_pell_award=maximum_pell_award,
     )
 
+    # --------------------------------------------------------
+    # Minimum Pell eligible
+    # --------------------------------------------------------
+
     if minimum["eligible"]:
+
         scheduled = min(
             minimum_pell_award * enrollment_intensity,
             cost_of_attendance
         )
+
         return {
             "pell_eligible": True,
             "pell_type": "Minimum Pell",
-            "pell_indicator": minimum["indicator"],
-            "annual_award_before_enrollment": minimum_pell_award,
-            "scheduled_award": round_pell_award(scheduled),
-            "maximum_pell": max_result,
+            "pell_indicator":
+                minimum["indicator"],
+
+            "annual_award_before_enrollment":
+                minimum_pell_award,
+
+            "scheduled_award":
+                round_pell_award(scheduled),
+
+            "maximum_pell":
+                max_result,
+
             "calculated_pell": {
                 **calculated,
-                "rounded_amount": calculated_rounded,
+                "rounded_amount":
+                    calculated_rounded,
             },
-            "minimum_pell": minimum,
+
+            "minimum_pell":
+                minimum,
         }
+
+    # --------------------------------------------------------
+    # No Pell
+    # --------------------------------------------------------
 
     return {
         "pell_eligible": False,
         "pell_type": None,
         "pell_indicator": None,
-        "annual_award_before_enrollment": 0,
-        "scheduled_award": 0,
-        "maximum_pell": max_result,
+
+        "annual_award_before_enrollment":
+            0,
+
+        "scheduled_award":
+            0,
+
+        "maximum_pell":
+            max_result,
+
         "calculated_pell": {
             **calculated,
-            "rounded_amount": calculated_rounded,
+            "rounded_amount":
+                calculated_rounded,
         },
-        "minimum_pell": minimum,
+
+        "minimum_pell":
+            minimum,
     }
