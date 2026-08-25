@@ -192,7 +192,18 @@ with c2:
     )
 
 
+# ============================================================
+# FAMILY INFORMATION
+# ============================================================
 
+st.header("Family Information")
+
+family_size = st.number_input(
+    "Family size",
+    min_value=1,
+    value=2,
+    step=1,
+)
 
 
 # ============================================================
@@ -209,13 +220,7 @@ if formula == "A":
         value=0.0,
         step=100.0,
     )
-    
-    family_size = st.number_input(
-    "Family size",
-    min_value=1,
-    value=2,
-    step=1,
-    )
+
     parent_tax_paid = st.number_input(
         "Parent federal income tax paid ($)",
         min_value=0.0,
