@@ -83,7 +83,12 @@ with c1:
         step=100.0,
     )
 
-    
+    ira_keogh = st.number_input(
+    "Deductible IRA/KEOGH ($)",
+    min_value=0.0,
+    value=0.0,
+    step=100.0,
+)
 
     foreign_income = st.number_input(
         "Foreign income exclusion ($)",
