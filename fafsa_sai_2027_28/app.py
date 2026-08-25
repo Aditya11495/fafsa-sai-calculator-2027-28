@@ -83,33 +83,7 @@ with c1:
         step=100.0,
     )
 
-    ira_keogh = st.number_input(
-        "Deductible IRA/KEOGH ($)",
-        min_value=0.0,
-        value=0.0,
-        step=100.0,
-    )
-
-    tax_exempt_interest = st.number_input(
-        "Tax-exempt interest ($)",
-        min_value=0.0,
-        value=0.0,
-        step=100.0,
-    )
-
-    untaxed_ira = st.number_input(
-        "Untaxed IRA distributions ($)",
-        min_value=0.0,
-        value=0.0,
-        step=100.0,
-    )
-
-    untaxed_pensions = st.number_input(
-        "Untaxed pensions ($)",
-        min_value=0.0,
-        value=0.0,
-        step=100.0,
-    )
+    
 
     foreign_income = st.number_input(
         "Foreign income exclusion ($)",
@@ -168,21 +142,8 @@ with c2:
         value=0.0,
         step=100.0,
     )
-
-
-# ============================================================
-# FAMILY INFORMATION
-# ============================================================
-
-st.header("Family Information")
-
-family_size = st.number_input(
-    "Family size",
-    min_value=1,
-    value=2,
-    step=1,
-)
-
+    
+    
 
 # ============================================================
 # PARENT INFORMATION
@@ -198,7 +159,13 @@ if formula == "A":
         value=0.0,
         step=100.0,
     )
-
+    
+    family_size = st.number_input(
+    "Family size",
+    min_value=1,
+    value=2,
+    step=1,
+)
     parent_tax_paid = st.number_input(
         "Parent federal income tax paid ($)",
         min_value=0.0,
